@@ -27,7 +27,7 @@ helpheader='$HELPHEADER'
 targetdir="$archdirname"
 filesizes="$filesizes"
 totalsize="$totalsize"
-keep="$KEEP"
+keep="n"
 nooverwrite="$NOOVERWRITE"
 quiet="n"
 accept="n"
@@ -169,21 +169,14 @@ MS_Help()
  2) Running \$0 :
   \$0 [options] [--] [additional arguments to embedded script]
   with following options (in that order)
-  --confirm             Ask before running embedded script
   --quiet               Do not print anything except error messages
   --accept              Accept the license
-  --noexec              Do not run embedded script (implies --noexec-cleanup)
   --noexec-cleanup      Do not run embedded cleanup script
-  --keep                Do not erase target directory after running
-                        the embedded script
   --noprogress          Do not show the progress during the decompression
   --nox11               Do not spawn an xterm
   --nochown             Do not give the target folder to the current user
   --chown               Give the target folder to the current user recursively
   --nodiskspace         Do not check for available disk space
-  --target dir          Extract directly to a target directory (absolute or relative)
-                        This directory may undergo recursive chown (see --nochown).
-  --tar arg1 [arg2 ...] Access the contents of the archive through the tar command
   --ssl-pass-src src    Use the given src as the source of password to decrypt the data
                         using OpenSSL. See "PASS PHRASE ARGUMENTS" in man openssl.
                         Default is to prompt the user to enter decryption password
@@ -390,11 +383,6 @@ do
 	if test x"$NEED_ROOT" = xy; then
 		echo "Root permissions required for extraction"
 	fi
-	if test x"$KEEP" = xy; then
-	    echo "directory \$targetdir is permanent"
-	else
-	    echo "\$targetdir will be removed after extraction"
-	fi
 	exit 0
 	;;
     --dumpconf)
@@ -403,7 +391,6 @@ do
 	echo SCRIPTARGS=\"\$scriptargs\"
     echo CLEANUPSCRIPT=\"\$cleanup_script\"
 	echo archdirname=\"$archdirname\"
-	echo KEEP=$KEEP
 	echo NOOVERWRITE=$NOOVERWRITE
 	echo COMPRESS=$COMPRESS
 	echo filesizes=\"\$filesizes\"
@@ -432,17 +419,6 @@ EOLSM
 	done
 	exit 0
 	;;
-	--tar)
-	offset=\`head -n "\$skip" "\$0" | wc -c | tr -d " "\`
-	arg1="\$2"
-    shift 2 || { MS_Help; exit 1; }
-	for s in \$filesizes
-	do
-	    MS_dd "\$0" \$offset \$s | MS_Decompress | tar "\$arg1" - "\$@"
-	    offset=\`expr \$offset + \$s\`
-	done
-	exit 0
-	;;
     --check)
 	MS_Check "\$0" y
 	exit 0
@@ -452,28 +428,6 @@ EOLSM
     shift 2 || { MS_Help; exit 1; }
     MS_Verify_Sig "\$0"
     ;;
-    --confirm)
-	verbose=y
-	shift
-	;;
-	--noexec)
-	script=""
-    cleanup_script=""
-	shift
-	;;
-    --noexec-cleanup)
-    cleanup_script=""
-    shift
-    ;;
-    --keep)
-	keep=y
-	shift
-	;;
-    --target)
-	keep=y
-	targetdir="\${2:-.}"
-    shift 2 || { MS_Help; exit 1; }
-	;;
     --noprogress)
 	noprogress=y
 	shift
@@ -682,7 +636,7 @@ if test x"\$script" != x; then
         MS_SCRIPT="\$script"
         MS_SCRIPTARGS="\$scriptargs"
         MS_ARCHDIRNAME="\$archdirname"
-        MS_KEEP="\$KEEP"
+        MS_KEEP="false"
         MS_NOOVERWRITE="\$NOOVERWRITE"
         MS_COMPRESS="\$COMPRESS"
         MS_CLEANUP="\$cleanup"

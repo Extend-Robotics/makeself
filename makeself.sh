@@ -318,17 +318,8 @@ do
 	OWNERSHIP=y
 	shift
 	;;
-    --notemp)
-	KEEP=y
-	shift
-	;;
     --copy)
 	COPY=copy
-	shift
-	;;
-    --current)
-	CURRENT=y
-	KEEP=y
 	shift
 	;;
     --tar-format)
@@ -343,11 +334,6 @@ do
         UNTAR_EXTRA="$2"
         shift 2 || { MS_Usage; exit 1; }
         ;;
-    --target)
-	  TARGETDIR="$2"
-	  KEEP=y
-    shift 2 || { MS_Usage; exit 1; }
- 	  ;;
     --sign)
     SIGN=y
     GPG_PASSPHRASE="$2"
